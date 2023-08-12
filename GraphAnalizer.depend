@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1691812068 source:c:\users\swilf\onedrive\documents\projects\c++\graphanalizer\main.cpp
+	<iostream>
+	<vector>
+	<map>
+	<string>
+	<stdio.h>
+
