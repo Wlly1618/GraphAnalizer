@@ -101,20 +101,48 @@ int main()
   // Graph graph({nodeA, nodeB, nodeC, nodeD, nodeE, nodeF});
   // graph.show_graph();
 
-  edges = {'B', 'F'};
-  Node nodeA('A', edges);
-  edges = {'A', 'D', 'E', 'F'};
-  Node nodeB('B', edges);
-  edges = {'F', 'D'};
-  Node nodeC('C', edges);
-  edges = {'B', 'C', 'E', 'F'};
-  Node nodeD('D', edges);
-  edges = {'B', 'D'};
-  Node nodeE('E', edges);
-  edges = {'A', 'B', 'C', 'D'};
-  Node nodeF('F', edges);
-  Graph graph({nodeA, nodeB, nodeC, nodeD, nodeE, nodeF});
-  graph.show_graph();
+  // edges = {'B', 'F'};
+  // Node nodeA('A', edges);
+  // edges = {'A', 'D', 'E', 'F'};
+  // Node nodeB('B', edges);
+  // edges = {'F', 'D'};
+  // Node nodeC('C', edges);
+  // edges = {'B', 'C', 'E', 'F'};
+  // Node nodeD('D', edges);
+  // edges = {'B', 'D'};
+  // Node nodeE('E', edges);
+  // edges = {'A', 'B', 'C', 'D'};
+  // Node nodeF('F', edges);
+  // Graph graph({nodeA, nodeB, nodeC, nodeD, nodeE, nodeF});
+  // graph.show_graph();
+
+  // edges = {'B', 'C', 'D', 'E'};
+  // Node nodeA('A', edges);
+  // edges = {'A', 'E'};
+  // Node nodeB('B', edges);
+  // edges = {'A', 'D'};
+  // Node nodeC('C', edges);
+  // edges = {'A', 'C'};
+  // Node nodeD('D', edges);
+  // edges = {'A', 'B'};
+  // Node nodeE('E', edges);
+  // Graph graph({nodeA, nodeB, nodeC, nodeD, nodeE});
+  // graph.show_graph();
+
+  // edges = {'B', 'C'};
+  // Node nodeA('A', edges);
+  // edges = {'A', 'D', 'F'};
+  // Node nodeB('B', edges);
+  // edges = {'A', 'E'};
+  // Node nodeC('C', edges);
+  // edges = {'B', 'F'};
+  // Node nodeD('D', edges);
+  // edges = {'C', 'F'};
+  // Node nodeE('E', edges);
+  // edges = {'B', 'D', 'E'};
+  // Node nodeF('F', edges);
+  // Graph graph({nodeA, nodeB, nodeC, nodeD, nodeE, nodeF});
+  // graph.show_graph();
 
   return 0;
 }
@@ -156,6 +184,15 @@ void Graph::show_graph()
   else cout << "\tEulerian: \t" << msg_false << "\n";
 
   do_euler();
+}
+
+void Graph::show_road(vector<char> road)
+{
+  for (auto edge : road)
+  {
+    cout << edge  << "\t";
+  }
+  cout << "\n";
 }
 
 void Graph::make_matrix()
@@ -315,20 +352,14 @@ map<char, vector<char>> update(char start, char end, map<char, vector<char>> lis
   return list;
 }
 
-void Graph::show_road(vector<char> road)
-{
-  for (auto edge : road)
-  {
-    cout << edge  << "\t";
-  }
-  cout << "\n";
-}
-
 void Graph::do_euler()
 {
   if (eulerian)
   {
     int unpair_nodes = 0;
+    int size = degrees / 2;
+    char start, end;
+    map<char, vector<char>> temp = adjacency_list;
 
     for (const auto& node : adjacency_list)
     {
@@ -337,100 +368,67 @@ void Graph::do_euler()
 
     if (unpair_nodes == 0)
     {
-      cout << "circuit euler\n";
+      cout << "\n\ncircuit euler\n";
 
-      bool flag;
-      flag = true;
-      char start = nodes[0].get_vertex(), end, no = start;
+      start = nodes[0].get_vertex();
+      char no = start;
       vector<char> circuit;
-
-      flag = true;
-      int size_circuit = degrees / 2;
-      map<char, vector<char>> temp = adjacency_list;
-
-      cout << "start: " << start << "\tdegrees: " << degrees << "\n\n";
       circuit.push_back(start);
 
-      int i=0;
+      int i;
       do
       {
-        do
+        i = 0;
+        for (auto& node : temp)
         {
-          for (auto& node : temp)
+          if (node.first == start)
           {
-            if (node.first == start)
-            {
-              if (node.second.at(0) == no) i = 1;
-              end = node.second.at(0 + i);
-              i=0;
-
-              temp = update(start, end, temp);
-              size_circuit--;
-              start = end;
-              circuit.push_back(start);
-              break;
-            }
+            if (node.second.at(i) == no && node.second.size() > 2) i = 1;
+            end = node.second.at(i);
+            temp = update(start, end, temp);
+            size--;
+            start = end;
+            circuit.push_back(start);
+            break;
           }
-        } while (size_circuit > 1);
-        cout << "\n";
-      } while(!flag);
+        }
+      } while (size > 1);
 
       circuit.push_back(no);
-
       show_road(circuit);
     }
 
     if (unpair_nodes == 2)
     {
       cout << "\n\nroad euler\n";
-      bool flag;
-
-      flag = true;
-      char start, end;
       vector<char> road;
 
-      for (auto it = adjacency_list.begin(); it != adjacency_list.end(); ++it)
+      for (auto node : adjacency_list)
       {
-        if (it->second.size() % 2 == 1)
+        if (node.second.size() % 2 == 1)
         {
-          if (flag)
-          {
-            start = it->first;
-            flag = false;
-          }
-          else
-          {
-            end = it->first;
-            break;
-          }
+          start = node.first;
+          break;
         }
       }
 
-      flag = true;
-      int size_road = degrees / 2;
-      map<char, vector<char>> temp = adjacency_list;
-
-      cout << "start: " << start << "\tend: " << end << "\n\n";
       road.push_back(start);
 
       do
       {
-        do
+        for (auto& node : temp)
         {
-          for (auto& node : temp)
+          if (node.first == start)
           {
-            if (node.first == start)
-            {
-              end = node.second.at(0);
-              temp = update(start, end, temp);
-              size_road--;
-              start = end;
-              road.push_back(start);
-              break;
-            }
+            end = node.second.at(0);
+            temp = update(start, end, temp);
+            size--;
+            start = end;
+            road.push_back(start);
+            break;
           }
-        } while (size_road > 0);
-      } while(!flag);
+        }
+      } while (size > 0);
 
       show_road(road);
     }
