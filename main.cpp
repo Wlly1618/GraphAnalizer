@@ -2,10 +2,13 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <set>
+#include <algorithm>
 #include <stdio.h>
 
 using std::vector;
 using std::map;
+using std::set;
 using std::cout;
 using std::cin;
 using std::string;
@@ -38,31 +41,32 @@ class Graph {
     bool hamiltonian;
     int degrees = 0;
 
-  public:
-    Graph(vector<Node> _nodes)
-    {
-      nodes = _nodes;
-      symmetria = is_symmetrical();
-      related = is_related();
-      eulerian = is_eulerian();
-      //hamiltonian = is_hamiltonian();
-
-      make_matrix();
-      make_adjacency_list();
-    }
-
     bool is_symmetrical();
     bool is_related();
     bool is_eulerian();
     bool is_hamiltonian();
 
-    void show_road(vector<char>);
+    void make_matrix();
+    void make_adjacency_list();
+
+  public:
+    Graph(vector<Node> _nodes)
+    {
+      nodes = _nodes;
+
+      make_adjacency_list();
+      related = is_related();
+
+      symmetria = is_symmetrical();
+      eulerian = is_eulerian();
+      make_matrix();
+      //hamiltonian = is_hamiltonian();
+    }
+
 
     void show_graph();
     void show_matrix();
-
-    void make_matrix();
-    void make_adjacency_list();
+    void show_road(vector<char>);
 
     void do_euler();
 };
@@ -163,22 +167,26 @@ void Graph::make_matrix()
   }
 
   vector<bool> row;
+  bool flag;
   for (auto node : nodes)
   {
-    for (int i=0; i < cmp_nodes.size(); i++)
+    flag = false;
+    vector<char> temp = node.get_edges();
+    for (auto cmp : cmp_nodes)
     {
-      bool flag = false;
-      for (auto edge : node.get_edges())
+      for (int i=0; i < temp.size(); i++)
       {
-        if (edge == cmp_nodes[i])
+        if (cmp == temp.at(i))
         {
           flag = true;
           degrees++;
+          temp.erase(temp.begin() + i);
           break;
         }
       }
       row.push_back(flag);
     }
+
     matrix.push_back(row);
     row.clear();
   }
@@ -235,35 +243,22 @@ bool Graph::is_symmetrical()
 
 bool Graph::is_related()
 {
-  int counter_nodes = nodes.size();
-  vector<char> _vertex;
+  vector<char> list_edges;
+
+  for (const auto& node : adjacency_list)
+  {
+    const vector<char>& edges = node .second;
+    list_edges.insert(list_edges.end(), edges.begin(), edges.end());
+  }
+
+  set<char> edges_clean(list_edges.begin(), list_edges.end());
+
   for (auto node : nodes)
   {
-    _vertex.push_back(node.get_vertex());
+    edges_clean.erase(node.get_vertex());
   }
 
-  for (int i=0; i < _vertex.size(); i++)
-  {
-    //cout << _vertex[i] << "\t";
-    bool flag = false;
-    for (auto node : nodes)
-    {
-      if (flag) continue;
-      for (auto vertex : node.get_edges())
-      {
-        //cout << vertex << " ";
-        if (vertex == _vertex[i])
-        {
-          counter_nodes--;
-          flag = true;
-          break;
-        }
-      }
-    }
-    //cout << "\n";
-  }
-
-  if (counter_nodes == 0) return true;
+  if (edges_clean.size() == 0) return true;
   else return false;
 }
 
@@ -278,9 +273,7 @@ bool Graph::is_eulerian()
     if ((node.second.size() % 2) == 1) unpair_nodes++;
   }
 
-  if (unpair_nodes == 0) return true;
-
-  if (unpair_nodes == 2) return true;
+  if (unpair_nodes == 0 || unpair_nodes == 2) return true;
 
   return false;
 }
@@ -371,7 +364,7 @@ void Graph::do_euler()
               end = node.second.at(0 + i);
               i=0;
 
-              temp = update(start, end, temp);              
+              temp = update(start, end, temp);
               size_circuit--;
               start = end;
               circuit.push_back(start);
@@ -386,7 +379,7 @@ void Graph::do_euler()
 
       show_road(circuit);
     }
-    
+
     if (unpair_nodes == 2)
     {
       cout << "\n\nroad euler\n";
@@ -400,12 +393,12 @@ void Graph::do_euler()
       {
         if (it->second.size() % 2 == 1)
         {
-          if (flag) 
+          if (flag)
           {
             start = it->first;
             flag = false;
           }
-          else 
+          else
           {
             end = it->first;
             break;
@@ -429,7 +422,7 @@ void Graph::do_euler()
             if (node.first == start)
             {
               end = node.second.at(0);
-              temp = update(start, end, temp);              
+              temp = update(start, end, temp);
               size_road--;
               start = end;
               road.push_back(start);
